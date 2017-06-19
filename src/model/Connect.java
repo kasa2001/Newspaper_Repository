@@ -1,10 +1,14 @@
 package model;
 
+import exception.SwitchException;
+
+import javax.swing.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import static model.TemporaryBase.temporaryBase;
 
 public class Connect {
 
@@ -155,7 +159,7 @@ public class Connect {
      *
      * @param query String
      */
-    public void insertData(String query) {
+    private void insertData(String query) {
         try {
             statement = connection.createStatement();
             statement.execute(query);
@@ -184,4 +188,208 @@ public class Connect {
             System.err.println("Błąd SQL: " + e.getMessage());
         }
     }
+
+    /**
+     * Method check propriety of String
+     *
+     * @return String
+     * @throws SwitchException if not selected one of possible method
+     */
+    private String getTableInfo(JLabel setText) throws SwitchException {
+        String data = setText.getText();
+        switch (data) {
+            case "Podaj nazwę wydawnictwa: ":
+                return "Wydawnictwo";
+            case "Podaj imię autora: ":
+                return "Autor";
+            case "Podaj nazwę czasopisma: ":
+                return "Czasopismo";
+            case "Podaj numer czasopisma: ":
+                return "Numer";
+            default:
+                throw new SwitchException("Błąd switcha");
+        }
+    }
+
+    /**
+     * Method get data about field
+     *
+     * @return array String
+     * @throws SwitchException if not selected one of possible method
+     */
+    private String[] getField(String data) throws SwitchException {
+        switch (data) {
+            case "Wydawnictwo":
+                return this.wydawnictwoField();
+            case "Autor":
+                return this.autorField();
+            case "Czasopismo":
+                return this.czasopismoField();
+            case "Numer":
+                return this.numerField();
+            default:
+                throw new SwitchException("Błąd switcha");
+        }
+    }
+
+    /**
+     * Method return field in wydawnictwo table
+     *
+     * @return String array
+     */
+    private String[] wydawnictwoField() {
+        String data[] = {"name", "nip", "regon", "year"};
+        return data;
+    }
+
+    /**
+     * Method return field in autor table
+     *
+     * @return String array
+     */
+    private String[] autorField() {
+        String data[] = {"name", "surname", "id_publishing_house"};
+        return data;
+    }
+
+    /**
+     * Method return field in czasopismo table
+     *
+     * @return String array
+     */
+    private String[] czasopismoField() {
+        String data[] = {"name", "cost", "id_author", "id_publishing_house"};
+        return data;
+    }
+
+    /**
+     * Method return field in numer table
+     *
+     * @return String array
+     */
+    private String[] numerField() {
+        String data[] = {"number", "id_newspaper", "content_table"};
+        return data;
+    }
+
+    /**
+     * Method switch method for preparing sql query
+     *
+     * @throws SwitchException if not selected one of possible method
+     */
+    private String getValues(String table, JTextArea... getData) throws SwitchException {
+        StringBuilder bf = new StringBuilder();
+        switch (table) {
+            case "Wydawnictwo":
+                bf.append(this.valueWydawnictwo(getData));
+                break;
+            case "Autor":
+                bf.append(this.valueAutor(getData));
+                break;
+            case "Czasopismo":
+                bf.append(this.valueCzasopismo(getData));
+                break;
+            case "Numer":
+                bf.append(this.valueNumer(getData));
+                break;
+            default:
+                throw new SwitchException("Błąd switcha");
+        }
+        return bf.toString();
+    }
+
+    /**
+     * Method return field in value from wydawnictwo table
+     *
+     * @return String
+     */
+    private String valueWydawnictwo(JTextArea... getData) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("'" + getData[0].getText() + "', ");
+        sb.append("'" + getData[1].getText() + "', '" + getData[2].getText() + "', '" + getData[3].getText() + "')");
+        return sb.toString();
+    }
+
+    /**
+     * Method return field in value from autor table
+     *
+     * @return String
+     */
+    private String valueAutor(JTextArea... getData) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("'" + getData[0].getText() + "', '" + getData[1].getText() + "', ");
+        sb.append("'" + getData[2].getText() + "')");
+        return sb.toString();
+    }
+
+    /**
+     * Method return field in value from czasopismo table
+     *
+     * @return String
+     */
+    private String valueCzasopismo(JTextArea... getData) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("'" + getData[0].getText() + "', ");
+        sb.append("'" + Double.parseDouble(getData[1].getText()) + "', ");
+        sb.append("'" + getData[2].getText() + "', '" + getData[3].getText() + "')");
+        return sb.toString();
+    }
+
+    /**
+     * Method return field in value from numer table
+     *
+     * @return String
+     */
+    private String valueNumer(JTextArea... getData) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("'" + getData[0].getText() + "', '" + getData[1].getText() + "', '" + getData[2].getText() + "')");
+        return sb.toString();
+    }
+
+    /**
+     * Method prepare new SQL query and send to insert method
+     */
+    public void prepareSQL(JLabel setText, JTextArea... getData) {
+        StringBuilder sb = new StringBuilder();
+        try {
+            String data = this.getTableInfo(setText);
+            sb.append("INSERT INTO `" + data + "` (");
+            String[] strings = this.getField(data);
+            for (int i = 0; i < strings.length; i++) {
+                sb.append("`" + strings[i] + "` ");
+                if (i != strings.length - 1) sb.append(",");
+            }
+            sb.append(") VALUES (" + this.getValues(data, getData));
+            connect.insertData(sb.toString());
+            addToTemporaryBase(data, getData);
+        } catch (SwitchException e) {
+            System.err.println(e.getMessage());
+        }
+    }
+
+    /**
+     * Method switch method for create new object in temporary database
+     *
+     * @throws SwitchException if not selected one of possible method
+     */
+    private void addToTemporaryBase(String table, JTextArea... getData) throws SwitchException {
+        switch (table) {
+            case "Wydawnictwo":
+                temporaryBase.setWydawnictwa(new Wydawnictwo(Integer.parseInt(getData[3].getText()), Integer.parseInt(getData[1].getText()), Integer.parseInt(getData[2].getText()), getData[0].getText()));
+                break;
+            case "Czasopismo":
+                temporaryBase.setCzasopismos(new Czasopismo(getData[0].getText(), Double.parseDouble(getData[1].getText()), Integer.parseInt(getData[2].getText()), Integer.parseInt(getData[3].getText())));
+                break;
+            case "Numer":
+                temporaryBase.setNumers(new Numer(Integer.parseInt(getData[0].getText()), Integer.parseInt(getData[1].getText()), Integer.parseInt(getData[2].getText())));
+                break;
+            case "Autor":
+                temporaryBase.setAutors(new Autor(getData[0].getText(), getData[1].getText(), Integer.parseInt(getData[2].getText())));
+                break;
+            default:
+                throw new SwitchException("Błąd switcha");
+        }
+    }
+
+
 }

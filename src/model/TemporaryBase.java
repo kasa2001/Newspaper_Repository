@@ -10,7 +10,7 @@ public class TemporaryBase {
     private List<Numer> numers = new ArrayList<>();
     private List<Autor> autors = new ArrayList<>();
     private List<Czasopismo> czasopismos = new ArrayList<>();
-    private static TemporaryBase temporaryBase;
+    static TemporaryBase temporaryBase;
 
     /**
      * Private construct class Temporary base

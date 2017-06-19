@@ -117,8 +117,6 @@ public class Frame extends JFrame {
         this.submit = new JButton("Wyślij dane");
         for (int i = 0; i < this.moveButton.length; i++)
             moveButton[i] = new JButton();
-        this.moveButton[0].setText("Poprzedni");
-        this.moveButton[1].setText("Następny");
         this.delete = new JButton("Usuń rekord");
     }
 
@@ -142,7 +140,7 @@ public class Frame extends JFrame {
         this.addComponents(2, this.getButtons);
         this.addComponents(1, this.setButtons);
         this.addComponents(1, this.deleteButtons);
-        this.addComponents(4, this.moveButton[0], this.moveButton[1], this.redirect, this.submit, this.delete);
+        this.addComponents(4, this.moveButton[0], this.redirect, this.submit, this.delete, this.moveButton[1]);
         this.addComponents(0, this.setText[0], this.getData[0], this.setText[1], this.getData[1], this.setText[2], this.getData[2], this.setText[3], this.getData[3], this.setText[4]);
         destroyCurrentView();
     }
@@ -190,7 +188,7 @@ public class Frame extends JFrame {
         this.setButtons[3].setText("Dodaj numer czasopisma");
         this.deleteButtons[0].setText("Usuń czasopismo");
         this.deleteButtons[1].setText("Usuń numer");
-        this.moveButton[0].setText("Poprzeni");
+        this.moveButton[0].setText("Poprzedni");
         this.moveButton[1].setText("Następny");
     }
 
@@ -201,7 +199,7 @@ public class Frame extends JFrame {
         this.submit.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                prepareSQL();
+                connect.prepareSQL(setText[0],getData);
                 closeFrame(e);
             }
         });
@@ -579,206 +577,5 @@ public class Frame extends JFrame {
         return good;
     }
 
-    /**
-     * Method check propriety of String
-     *
-     * @return String
-     * @throws SwitchException if not selected one of possible method
-     */
-    private String getTableInfo() throws SwitchException {
-        String data = setText[0].getText();
-        switch (data) {
-            case "Podaj nazwę wydawnictwa: ":
-                return "Wydawnictwo";
-            case "Podaj imię autora: ":
-                return "Autor";
-            case "Podaj nazwę czasopisma: ":
-                return "Czasopismo";
-            case "Podaj numer czasopisma: ":
-                return "Numer";
-            default:
-                throw new SwitchException("Błąd switcha");
-        }
-    }
 
-    /**
-     * Method get data about field
-     *
-     * @return array String
-     * @throws SwitchException if not selected one of possible method
-     */
-    private String[] getField(String data) throws SwitchException {
-        switch (data) {
-            case "Wydawnictwo":
-                return this.wydawnictwoField();
-            case "Autor":
-                return this.autorField();
-            case "Czasopismo":
-                return this.czasopismoField();
-            case "Numer":
-                return this.numerField();
-            default:
-                throw new SwitchException("Błąd switcha");
-        }
-    }
-
-    /**
-     * Method return field in wydawnictwo table
-     *
-     * @return String array
-     */
-    private String[] wydawnictwoField() {
-        String data[] = {"name", "nip", "regon", "year"};
-        return data;
-    }
-
-    /**
-     * Method return field in autor table
-     *
-     * @return String array
-     */
-    private String[] autorField() {
-        String data[] = {"name", "surname", "id_publishing_house"};
-        return data;
-    }
-
-    /**
-     * Method return field in czasopismo table
-     *
-     * @return String array
-     */
-    private String[] czasopismoField() {
-        String data[] = {"name", "cost", "id_author", "id_publishing_house"};
-        return data;
-    }
-
-    /**
-     * Method return field in numer table
-     *
-     * @return String array
-     */
-    private String[] numerField() {
-        String data[] = {"number", "id_newspaper", "content_table"};
-        return data;
-    }
-
-    /**
-     * Method switch method for preparing sql query
-     *
-     * @throws SwitchException if not selected one of possible method
-     */
-    private String getValues(String table) throws SwitchException {
-        StringBuilder bf = new StringBuilder();
-        switch (table) {
-            case "Wydawnictwo":
-                bf.append(this.valueWydawnictwo());
-                break;
-            case "Autor":
-                bf.append(this.valueAutor());
-                break;
-            case "Czasopismo":
-                bf.append(this.valueCzasopismo());
-                break;
-            case "Numer":
-                bf.append(this.valueNumer());
-                break;
-            default:
-                throw new SwitchException("Błąd switcha");
-        }
-        return bf.toString();
-    }
-
-    /**
-     * Method return field in value from wydawnictwo table
-     *
-     * @return String
-     */
-    private String valueWydawnictwo() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("'" + this.getData[0].getText() + "', ");
-        sb.append("'" + this.getData[1].getText() + "', '" + this.getData[2].getText() + "', '" + this.getData[3].getText() + "')");
-        return sb.toString();
-    }
-
-    /**
-     * Method return field in value from autor table
-     *
-     * @return String
-     */
-    private String valueAutor() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("'" + this.getData[0].getText() + "', '" + this.getData[1].getText() + "', ");
-        sb.append("'" + this.getData[2].getText() + "')");
-        return sb.toString();
-    }
-
-    /**
-     * Method return field in value from czasopismo table
-     *
-     * @return String
-     */
-    private String valueCzasopismo() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("'" + this.getData[0].getText() + "', ");
-        sb.append("'" + Double.parseDouble(this.getData[1].getText()) + "', ");
-        sb.append("'" + this.getData[2].getText() + "', '" + this.getData[3].getText() + "')");
-        return sb.toString();
-    }
-
-    /**
-     * Method return field in value from numer table
-     *
-     * @return String
-     */
-    private String valueNumer() {
-        StringBuilder sb = new StringBuilder();
-        if (checkString(this.getData[0].getText(), this.getData[1].getText(), this.getData[2].getText()))
-            sb.append("'" + this.getData[0].getText() + "', '" + this.getData[1].getText() + "', '" + this.getData[2].getText() + "')");
-        return sb.toString();
-    }
-
-    /**
-     * Method prepare new SQL query and send to insert method
-     */
-    private void prepareSQL() {
-        StringBuilder sb = new StringBuilder();
-        try {
-            String data = this.getTableInfo();
-            sb.append("INSERT INTO `" + data + "` (");
-            String[] strings = this.getField(data);
-            for (int i = 0; i < strings.length; i++) {
-                sb.append("`" + strings[i] + "` ");
-                if (i != strings.length - 1) sb.append(",");
-            }
-            sb.append(") VALUES (" + this.getValues(data));
-            connect.insertData(sb.toString());
-            addToTemporaryBase(data);
-        } catch (SwitchException e) {
-            System.err.println(e.getMessage());
-        }
-    }
-
-    /**
-     * Method switch method for create new object in temporary database
-     *
-     * @throws SwitchException if not selected one of possible method
-     */
-    private void addToTemporaryBase(String table) throws SwitchException {
-        switch (table) {
-            case "Wydawnictwo":
-                temporaryBase.setWydawnictwa(new Wydawnictwo(Integer.parseInt(this.getData[3].getText()), Integer.parseInt(this.getData[1].getText()), Integer.parseInt(this.getData[2].getText()), this.getData[0].getText()));
-                break;
-            case "Czasopismo":
-                temporaryBase.setCzasopismos(new Czasopismo(this.getData[0].getText(), Double.parseDouble(this.getData[1].getText()), Integer.parseInt(this.getData[2].getText()), Integer.parseInt(this.getData[3].getText())));
-                break;
-            case "Numer":
-                temporaryBase.setNumers(new Numer(Integer.parseInt(getData[0].getText()), Integer.parseInt(getData[1].getText()), Integer.parseInt(getData[2].getText())));
-                break;
-            case "Autor":
-                temporaryBase.setAutors(new Autor(this.getData[0].getText(), this.getData[1].getText(), Integer.parseInt(this.getData[2].getText())));
-                break;
-            default:
-                throw new SwitchException("Błąd switcha");
-        }
-    }
 }
